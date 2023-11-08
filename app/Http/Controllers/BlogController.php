@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Blog;
 use App\Helpers\Response;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class BlogController extends Controller
@@ -69,6 +70,35 @@ class BlogController extends Controller
         if ($validator->fails()){
             return Response::error('', $validator->errors());
         }
+
+        try {
+            DB::transaction(function () use ($request, &$blog) {
+                $tittle = $request->input('tittle');
+                $user_id = $request->input('user_id');
+                $content = $request->input('content');
+                $file = $request->file('image');
+                 // mendapatkan original extensionnya
+                 $imageData = $file->getClientOriginalExtension();
+                 //membuat nama file dengan epochtime
+                 $image = strtotime(date('Y-m-d H:i:s')) . '.' . $imageData;
+
+                 $blog = Blog::create([
+                    'tittle' => $tittle,
+                    'user_id' => $user_id,
+                    'content' => $content,
+                    'image' => $image
+                 ]);
+                 // Simpan file dengan nama yang sudah dikodekan ke direktori public/upload
+                $file->move(base_path('public/upload'), $image);
+                });
+                if ($blog) {
+                   return Response::success($blog, 'Data Berhasil Disimpan');
+                } else {
+                   return Response::error('', 'Data Gagal Disimpan');
+                }
+        } catch (\Exception $e) {
+            return Response::error('', 'Terjadi Kesalahan Sistem');
+        }
     }
 
     /**
@@ -77,9 +107,9 @@ class BlogController extends Controller
      * @param  \App\Models\Blog  $blog
      * @return \Illuminate\Http\Response
      */
-    public function show(Blog $blog)
+    public function show($id)
     {
-        //
+        
     }
 
     /**

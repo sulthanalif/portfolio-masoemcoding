@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Blog extends Model
 {
     use UuidGenerator;
+    
     protected $keyType = 'string';
     protected $primaryKey = 'id';
     public $incrementing = false;
